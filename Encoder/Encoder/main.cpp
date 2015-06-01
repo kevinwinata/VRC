@@ -2,37 +2,64 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <iostream>
 #include <stack>
+#include <vector>
 #include <cmath>
 
 using cv::Mat;
 using cv::Point3_;
 using std::pair;
 using std::stack;
+using std::vector;
 
 Mat img;
-int maxDistance = 15;
+int maxDistance = 40;
 int** labels;
 
-double countDist(Point3_<uchar>* p1, Point3_<uchar>* p2, int mode)
+class RegionProps
 {
-	switch (mode) {
-	case 0:
-		return	std::sqrt(
-			(p1->x - p2->x) * (p1->x - p2->x) +
-			(p1->y - p2->y) * (p1->y - p2->y) +
-			(p1->z - p2->z) * (p1->z - p2->z)
-			);
-	case 1:
-		return	std::abs(p1->x - p2->x) +
-			std::abs(p1->y - p2->y) +
-			std::abs(p1->z - p2->z);
+	public:
+		int r_sums;
+		int g_sums;
+		int b_sums;
+		int r_dist;
+		int g_dist;
+		int b_dist;
+		int n;
+
+		RegionProps();
+};
+
+RegionProps::RegionProps() {
+	r_sums = 0;
+	g_sums = 0;
+	b_sums = 0;
+	r_dist = 0;
+	g_dist = 0;
+	b_dist = 0;
+	n = 0;
+}
+
+vector<RegionProps> props;
+
+void mouseCallback(int event, int x, int y, int flags, void* userdata)
+{
+	if (event == cv::EVENT_LBUTTONDOWN)
+	{
+		RegionProps& prop = props[labels[x][y]];
+		std::cout << "r_sums : " << prop.r_sums << std::endl;
+		std::cout << "g_sums : " << prop.g_sums << std::endl;
+		std::cout << "b_sums : " << prop.b_sums << std::endl;
+		std::cout << "r_dist : " << prop.r_dist << std::endl;
+		std::cout << "g_dist : " << prop.g_dist << std::endl;
+		std::cout << "b_dist : " << prop.b_dist << std::endl;
+		std::cout << "n : " << prop.n << std::endl;
 	}
 }
 
 void colorMap(int, void*)
 {
 	stack<pair<int, int>> stack;
-	int curlab = 1;
+	int curlab = 0;
 
 	labels = new int*[img.rows];
 	for (int i = 0; i < img.rows; ++i) {
@@ -45,12 +72,22 @@ void colorMap(int, void*)
 	for (int i = 0; i < img.rows; i++) {
 		for (int j = 0; j < img.cols; j++) {
 			if (labels[i][j] == 0) {
+
 				stack.push(std::make_pair(i, j));
+				RegionProps r;
+				props.push_back(r);
+				curlab++;
+
 				while (!stack.empty()) {
 					pair<int, int> pos = stack.top(); stack.pop();
-					// std::cout << pos.first << " " << pos.second << std::endl;
 					Point3_<uchar>* pixel = img.ptr<Point3_<uchar>>(pos.first, pos.second);
 					labels[pos.first][pos.second] = curlab;
+					RegionProps* prop = &props.back();
+
+					prop->r_sums += pixel->z;
+					prop->g_sums += pixel->y;
+					prop->b_sums += pixel->x;
+					prop->n++;
 
 					Point3_<uchar>* temp;
 
@@ -58,35 +95,62 @@ void colorMap(int, void*)
 						labels[pos.first - 1][pos.second] == 0) 
 					{
 						temp = img.ptr<Point3_<uchar>>(pos.first - 1, pos.second);
-						if (countDist(pixel,temp,1) <= maxDistance)
-							stack.push(std::make_pair(pos.first - 1,pos.second));
+						int dist = std::abs(prop->r_sums / prop->n - temp->z) +
+							std::abs(prop->g_sums / prop->n - temp->y) +
+							std::abs(prop->b_sums / prop->n - temp->x);
+						if (dist <= maxDistance) {
+							stack.push(std::make_pair(pos.first - 1, pos.second)); 
+							props.back().r_dist += std::abs(pixel->z - temp->z);
+							props.back().g_dist += std::abs(pixel->y - temp->y);
+							props.back().b_dist += std::abs(pixel->x - temp->x);
+						}
 					}
 
 					if (pos.first + 1 < img.rows &&
 						labels[pos.first + 1][pos.second] == 0)
 					{
 						temp = img.ptr<Point3_<uchar>>(pos.first + 1, pos.second);
-						if (countDist(pixel, temp, 1) <= maxDistance)
+						int dist = std::abs(prop->r_sums / prop->n - temp->z) +
+							std::abs(prop->g_sums / prop->n - temp->y) +
+							std::abs(prop->b_sums / prop->n - temp->x);
+						if (dist <= maxDistance) {
 							stack.push(std::make_pair(pos.first + 1, pos.second));
+							props.back().r_dist += std::abs(pixel->z - temp->z);
+							props.back().g_dist += std::abs(pixel->y - temp->y);
+							props.back().b_dist += std::abs(pixel->x - temp->x);
+						}
 					}
 
 					if (pos.second - 1 >= 0 &&
 						labels[pos.first][pos.second - 1] == 0)
 					{
 						temp = img.ptr<Point3_<uchar>>(pos.first, pos.second - 1);
-						if (countDist(pixel, temp, 1) <= maxDistance)
+						int dist = std::abs(prop->r_sums / prop->n - temp->z) +
+							std::abs(prop->g_sums / prop->n - temp->y) +
+							std::abs(prop->b_sums / prop->n - temp->x);
+						if (dist <= maxDistance) {
 							stack.push(std::make_pair(pos.first, pos.second - 1));
+							props.back().r_dist += std::abs(pixel->z - temp->z);
+							props.back().g_dist += std::abs(pixel->y - temp->y);
+							props.back().b_dist += std::abs(pixel->x - temp->x);
+						}
 					}
 
 					if (pos.second + 1 < img.cols &&
 						labels[pos.first][pos.second + 1] == 0)
 					{
 						temp = img.ptr<Point3_<uchar>>(pos.first, pos.second + 1);
-						if (countDist(pixel, temp, 1) <= maxDistance)
+						int dist = std::abs(prop->r_sums / prop->n - temp->z) +
+							std::abs(prop->g_sums / prop->n - temp->y) +
+							std::abs(prop->b_sums / prop->n - temp->x);
+						if (dist <= maxDistance) {
 							stack.push(std::make_pair(pos.first, pos.second + 1));
+							props.back().r_dist += std::abs(pixel->z - temp->z);
+							props.back().g_dist += std::abs(pixel->y - temp->y);
+							props.back().b_dist += std::abs(pixel->x - temp->x);
+						}
 					}
 				}
-				curlab++;
 			}
 		}
 	}
@@ -104,6 +168,7 @@ void colorMap(int, void*)
 
 	cv::namedWindow("Segmentated", CV_WINDOW_AUTOSIZE);
 	cv::imshow("Segmentated", img_seg);
+	cv::setMouseCallback("Segmentated", mouseCallback, NULL);
 }
 
 
@@ -125,7 +190,7 @@ int main(int argc, char** argv)
 	cv::namedWindow("Source", cv::WINDOW_AUTOSIZE);
 	cv::imshow("Source", img);
 
-	cv::createTrackbar(" Max Distance:", "Source", &maxDistance, 50, colorMap);
+	cv::createTrackbar(" Max Distance:", "Source", &maxDistance, 100, colorMap);
 	colorMap(0, 0);
 
 	cv::waitKey(0); // Wait for a keystroke in the window
