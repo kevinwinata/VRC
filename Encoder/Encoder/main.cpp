@@ -18,13 +18,13 @@ int** labels;
 class RegionProps
 {
 	public:
-		int r_sums;
-		int g_sums;
-		int b_sums;
-		int r_dist;
-		int g_dist;
-		int b_dist;
-		int n;
+		long r_sums;
+		long g_sums;
+		long b_sums;
+		long r_dist;
+		long g_dist;
+		long b_dist;
+		long n;
 
 		RegionProps();
 };
@@ -45,21 +45,25 @@ void mouseCallback(int event, int x, int y, int flags, void* userdata)
 {
 	if (event == cv::EVENT_LBUTTONDOWN)
 	{
-		RegionProps& prop = props[labels[x][y]];
+		RegionProps& prop = props[labels[y][x]];
+		std::cout << "label : " << labels[y][x] << std::endl;
 		std::cout << "r_sums : " << prop.r_sums << std::endl;
 		std::cout << "g_sums : " << prop.g_sums << std::endl;
 		std::cout << "b_sums : " << prop.b_sums << std::endl;
 		std::cout << "r_dist : " << prop.r_dist << std::endl;
 		std::cout << "g_dist : " << prop.g_dist << std::endl;
 		std::cout << "b_dist : " << prop.b_dist << std::endl;
-		std::cout << "n : " << prop.n << std::endl;
+		std::cout << "n : " << prop.n << std::endl << std::endl;
 	}
 }
 
 void colorMap(int, void*)
 {
 	stack<pair<int, int>> stack;
-	int curlab = 0;
+	long curlab = 0;
+	props.clear();
+	RegionProps first;
+	props.push_back(first);
 
 	labels = new int*[img.rows];
 	for (int i = 0; i < img.rows; ++i) {
@@ -74,20 +78,20 @@ void colorMap(int, void*)
 			if (labels[i][j] == 0) {
 
 				stack.push(std::make_pair(i, j));
-				RegionProps r;
-				props.push_back(r);
+				RegionProps curprop;
+				props.push_back(curprop);
+				RegionProps& prop = props.back();
 				curlab++;
 
 				while (!stack.empty()) {
 					pair<int, int> pos = stack.top(); stack.pop();
 					Point3_<uchar>* pixel = img.ptr<Point3_<uchar>>(pos.first, pos.second);
 					labels[pos.first][pos.second] = curlab;
-					RegionProps* prop = &props.back();
 
-					prop->r_sums += pixel->z;
-					prop->g_sums += pixel->y;
-					prop->b_sums += pixel->x;
-					prop->n++;
+					prop.r_sums += pixel->z;
+					prop.g_sums += pixel->y;
+					prop.b_sums += pixel->x;
+					prop.n++;
 
 					Point3_<uchar>* temp;
 
@@ -95,14 +99,14 @@ void colorMap(int, void*)
 						labels[pos.first - 1][pos.second] == 0) 
 					{
 						temp = img.ptr<Point3_<uchar>>(pos.first - 1, pos.second);
-						int dist = std::abs(prop->r_sums / prop->n - temp->z) +
-							std::abs(prop->g_sums / prop->n - temp->y) +
-							std::abs(prop->b_sums / prop->n - temp->x);
+						int dist = std::abs(prop.r_sums / prop.n - temp->z) +
+							std::abs(prop.g_sums / prop.n - temp->y) +
+							std::abs(prop.b_sums / prop.n - temp->x);
 						if (dist <= maxDistance) {
 							stack.push(std::make_pair(pos.first - 1, pos.second)); 
-							props.back().r_dist += std::abs(pixel->z - temp->z);
-							props.back().g_dist += std::abs(pixel->y - temp->y);
-							props.back().b_dist += std::abs(pixel->x - temp->x);
+							prop.r_dist += std::abs(pixel->z - temp->z);
+							prop.g_dist += std::abs(pixel->y - temp->y);
+							prop.b_dist += std::abs(pixel->x - temp->x);
 						}
 					}
 
@@ -110,14 +114,14 @@ void colorMap(int, void*)
 						labels[pos.first + 1][pos.second] == 0)
 					{
 						temp = img.ptr<Point3_<uchar>>(pos.first + 1, pos.second);
-						int dist = std::abs(prop->r_sums / prop->n - temp->z) +
-							std::abs(prop->g_sums / prop->n - temp->y) +
-							std::abs(prop->b_sums / prop->n - temp->x);
+						int dist = std::abs(prop.r_sums / prop.n - temp->z) +
+							std::abs(prop.g_sums / prop.n - temp->y) +
+							std::abs(prop.b_sums / prop.n - temp->x);
 						if (dist <= maxDistance) {
 							stack.push(std::make_pair(pos.first + 1, pos.second));
-							props.back().r_dist += std::abs(pixel->z - temp->z);
-							props.back().g_dist += std::abs(pixel->y - temp->y);
-							props.back().b_dist += std::abs(pixel->x - temp->x);
+							prop.r_dist += std::abs(pixel->z - temp->z);
+							prop.g_dist += std::abs(pixel->y - temp->y);
+							prop.b_dist += std::abs(pixel->x - temp->x);
 						}
 					}
 
@@ -125,14 +129,14 @@ void colorMap(int, void*)
 						labels[pos.first][pos.second - 1] == 0)
 					{
 						temp = img.ptr<Point3_<uchar>>(pos.first, pos.second - 1);
-						int dist = std::abs(prop->r_sums / prop->n - temp->z) +
-							std::abs(prop->g_sums / prop->n - temp->y) +
-							std::abs(prop->b_sums / prop->n - temp->x);
+						int dist = std::abs(prop.r_sums / prop.n - temp->z) +
+							std::abs(prop.g_sums / prop.n - temp->y) +
+							std::abs(prop.b_sums / prop.n - temp->x);
 						if (dist <= maxDistance) {
 							stack.push(std::make_pair(pos.first, pos.second - 1));
-							props.back().r_dist += std::abs(pixel->z - temp->z);
-							props.back().g_dist += std::abs(pixel->y - temp->y);
-							props.back().b_dist += std::abs(pixel->x - temp->x);
+							prop.r_dist += std::abs(pixel->z - temp->z);
+							prop.g_dist += std::abs(pixel->y - temp->y);
+							prop.b_dist += std::abs(pixel->x - temp->x);
 						}
 					}
 
@@ -140,14 +144,14 @@ void colorMap(int, void*)
 						labels[pos.first][pos.second + 1] == 0)
 					{
 						temp = img.ptr<Point3_<uchar>>(pos.first, pos.second + 1);
-						int dist = std::abs(prop->r_sums / prop->n - temp->z) +
-							std::abs(prop->g_sums / prop->n - temp->y) +
-							std::abs(prop->b_sums / prop->n - temp->x);
+						int dist = std::abs(prop.r_sums / prop.n - temp->z) +
+							std::abs(prop.g_sums / prop.n - temp->y) +
+							std::abs(prop.b_sums / prop.n - temp->x);
 						if (dist <= maxDistance) {
 							stack.push(std::make_pair(pos.first, pos.second + 1));
-							props.back().r_dist += std::abs(pixel->z - temp->z);
-							props.back().g_dist += std::abs(pixel->y - temp->y);
-							props.back().b_dist += std::abs(pixel->x - temp->x);
+							prop.r_dist += std::abs(pixel->z - temp->z);
+							prop.g_dist += std::abs(pixel->y - temp->y);
+							prop.b_dist += std::abs(pixel->x - temp->x);
 						}
 					}
 				}
