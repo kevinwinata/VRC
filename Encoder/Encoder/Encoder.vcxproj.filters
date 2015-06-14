@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Source Files\potrace">
+      <UniqueIdentifier>{90cf2b97-7448-4474-aba4-b5499333411f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -21,6 +24,48 @@
     <ClCompile Include="imgproc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="potrace\bbox.c">
+      <Filter>Source Files\potrace</Filter>
+    </ClCompile>
+    <ClCompile Include="potrace\bitmap_io.c">
+      <Filter>Source Files\potrace</Filter>
+    </ClCompile>
+    <ClCompile Include="potrace\curve.c">
+      <Filter>Source Files\potrace</Filter>
+    </ClCompile>
+    <ClCompile Include="potrace\decompose.c">
+      <Filter>Source Files\potrace</Filter>
+    </ClCompile>
+    <ClCompile Include="potrace\flate.c">
+      <Filter>Source Files\potrace</Filter>
+    </ClCompile>
+    <ClCompile Include="potrace\getopt.c">
+      <Filter>Source Files\potrace</Filter>
+    </ClCompile>
+    <ClCompile Include="potrace\getopt1.c">
+      <Filter>Source Files\potrace</Filter>
+    </ClCompile>
+    <ClCompile Include="potrace\greymap.c">
+      <Filter>Source Files\potrace</Filter>
+    </ClCompile>
+    <ClCompile Include="potrace\lzw.c">
+      <Filter>Source Files\potrace</Filter>
+    </ClCompile>
+    <ClCompile Include="potrace\potracelib.c">
+      <Filter>Source Files\potrace</Filter>
+    </ClCompile>
+    <ClCompile Include="potrace\progress_bar.c">
+      <Filter>Source Files\potrace</Filter>
+    </ClCompile>
+    <ClCompile Include="potrace\render.c">
+      <Filter>Source Files\potrace</Filter>
+    </ClCompile>
+    <ClCompile Include="potrace\trace.c">
+      <Filter>Source Files\potrace</Filter>
+    </ClCompile>
+    <ClCompile Include="potrace\trans.c">
+      <Filter>Source Files\potrace</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgproc.h">
@@ -28,6 +73,63 @@
     </ClInclude>
     <ClInclude Include="regionprops.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="potrace\auxiliary.h">
+      <Filter>Source Files\potrace</Filter>
+    </ClInclude>
+    <ClInclude Include="potrace\bbox.h">
+      <Filter>Source Files\potrace</Filter>
+    </ClInclude>
+    <ClInclude Include="potrace\bitmap.h">
+      <Filter>Source Files\potrace</Filter>
+    </ClInclude>
+    <ClInclude Include="potrace\bitmap_io.h">
+      <Filter>Source Files\potrace</Filter>
+    </ClInclude>
+    <ClInclude Include="potrace\bitops.h">
+      <Filter>Source Files\potrace</Filter>
+    </ClInclude>
+    <ClInclude Include="potrace\curve.h">
+      <Filter>Source Files\potrace</Filter>
+    </ClInclude>
+    <ClInclude Include="potrace\decompose.h">
+      <Filter>Source Files\potrace</Filter>
+    </ClInclude>
+    <ClInclude Include="potrace\flate.h">
+      <Filter>Source Files\potrace</Filter>
+    </ClInclude>
+    <ClInclude Include="potrace\getopt.h">
+      <Filter>Source Files\potrace</Filter>
+    </ClInclude>
+    <ClInclude Include="potrace\greymap.h">
+      <Filter>Source Files\potrace</Filter>
+    </ClInclude>
+    <ClInclude Include="potrace\lists.h">
+      <Filter>Source Files\potrace</Filter>
+    </ClInclude>
+    <ClInclude Include="potrace\lzw.h">
+      <Filter>Source Files\potrace</Filter>
+    </ClInclude>
+    <ClInclude Include="potrace\platform.h">
+      <Filter>Source Files\potrace</Filter>
+    </ClInclude>
+    <ClInclude Include="potrace\potracelib.h">
+      <Filter>Source Files\potrace</Filter>
+    </ClInclude>
+    <ClInclude Include="potrace\progress.h">
+      <Filter>Source Files\potrace</Filter>
+    </ClInclude>
+    <ClInclude Include="potrace\progress_bar.h">
+      <Filter>Source Files\potrace</Filter>
+    </ClInclude>
+    <ClInclude Include="potrace\render.h">
+      <Filter>Source Files\potrace</Filter>
+    </ClInclude>
+    <ClInclude Include="potrace\trace.h">
+      <Filter>Source Files\potrace</Filter>
+    </ClInclude>
+    <ClInclude Include="potrace\trans.h">
+      <Filter>Source Files\potrace</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

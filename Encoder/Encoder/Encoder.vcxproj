@@ -145,9 +145,42 @@
   <ItemGroup>
     <ClCompile Include="imgproc.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="potrace\bbox.c" />
+    <ClCompile Include="potrace\bitmap_io.c" />
+    <ClCompile Include="potrace\curve.c" />
+    <ClCompile Include="potrace\decompose.c" />
+    <ClCompile Include="potrace\flate.c" />
+    <ClCompile Include="potrace\getopt.c" />
+    <ClCompile Include="potrace\getopt1.c" />
+    <ClCompile Include="potrace\greymap.c" />
+    <ClCompile Include="potrace\lzw.c" />
+    <ClCompile Include="potrace\potracelib.c" />
+    <ClCompile Include="potrace\progress_bar.c" />
+    <ClCompile Include="potrace\render.c" />
+    <ClCompile Include="potrace\trace.c" />
+    <ClCompile Include="potrace\trans.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgproc.h" />
+    <ClInclude Include="potrace\auxiliary.h" />
+    <ClInclude Include="potrace\bbox.h" />
+    <ClInclude Include="potrace\bitmap.h" />
+    <ClInclude Include="potrace\bitmap_io.h" />
+    <ClInclude Include="potrace\bitops.h" />
+    <ClInclude Include="potrace\curve.h" />
+    <ClInclude Include="potrace\decompose.h" />
+    <ClInclude Include="potrace\flate.h" />
+    <ClInclude Include="potrace\getopt.h" />
+    <ClInclude Include="potrace\greymap.h" />
+    <ClInclude Include="potrace\lists.h" />
+    <ClInclude Include="potrace\lzw.h" />
+    <ClInclude Include="potrace\platform.h" />
+    <ClInclude Include="potrace\potracelib.h" />
+    <ClInclude Include="potrace\progress.h" />
+    <ClInclude Include="potrace\progress_bar.h" />
+    <ClInclude Include="potrace\render.h" />
+    <ClInclude Include="potrace\trace.h" />
+    <ClInclude Include="potrace\trans.h" />
     <ClInclude Include="regionprops.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
