@@ -6,26 +6,11 @@ using cv::Point3_;
 using std::pair;
 using std::stack;
 
-#define BM_WORDSIZE ((int)sizeof(potrace_word))
-#define BM_WORDBITS (8*BM_WORDSIZE)
-#define BM_HIBIT (((potrace_word)1)<<(BM_WORDBITS-1))
-#define bm_scanline(bm, y) ((bm)->map + (y)*(bm)->dy)
-#define bm_index(bm, x, y) (&bm_scanline(bm, y)[(x)/BM_WORDBITS])
-#define bm_mask(x) (BM_HIBIT >> ((x) & (BM_WORDBITS-1)))
-#define bm_range(x, a) ((int)(x) >= 0 && (int)(x) < (a))
-#define bm_safe(bm, x, y) (bm_range(x, (bm)->w) && bm_range(y, (bm)->h))
-#define BM_USET(bm, x, y) (*bm_index(bm, x, y) |= bm_mask(x))
-#define BM_UCLR(bm, x, y) (*bm_index(bm, x, y) &= ~bm_mask(x))
-#define BM_UPUT(bm, x, y, b) ((b) ? BM_USET(bm, x, y) : BM_UCLR(bm, x, y))
-#define BM_PUT(bm, x, y, b) (bm_safe(bm, x, y) ? BM_UPUT(bm, x, y, b) : 0)
-
 void colorMapSegmentation(Mat& img, Mat& img_seg, vector<vector<int> >& labels, vector<RegionProps>& props, vector<potrace_bitmap_t>& segments, int maxDistance)
 {
 	stack<pair<int, int> > stack;
 	long curlab = 0;
 	props.clear();
-	RegionProps first;
-	props.push_back(first);
 
 	potrace_bitmap_t *obm;
 	obm = bm_new(img.cols, img.rows);
@@ -52,7 +37,7 @@ void colorMapSegmentation(Mat& img, Mat& img_seg, vector<vector<int> >& labels, 
 					pair<int, int> pos = stack.top(); stack.pop();
 					Point3_<uchar>* pixel = img.ptr<Point3_<uchar> >(pos.first, pos.second);
 					labels[pos.first][pos.second] = curlab;
-					BM_PUT(bm, pos.second, pos.first, 1);
+					BM_PUT(bm, pos.second, img.rows - pos.first, 1);
 
 					prop.r_sums += pixel->z;
 					prop.g_sums += pixel->y;

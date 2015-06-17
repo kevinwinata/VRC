@@ -19,7 +19,7 @@ void mouseCallback(int event, int x, int y, int flags, void* userdata)
 {
 	if (event == cv::EVENT_LBUTTONDOWN)
 	{
-		RegionProps& prop = props[labels[y][x]];
+		RegionProps& prop = props[labels[y][x] - 1];
 		std::cout << "label : " << labels[y][x] << std::endl;
 		std::cout << "r_sums : " << prop.r_sums << std::endl;
 		std::cout << "g_sums : " << prop.g_sums << std::endl;
@@ -29,7 +29,7 @@ void mouseCallback(int event, int x, int y, int flags, void* userdata)
 		std::cout << "b_dist : " << prop.b_dist << std::endl;
 		std::cout << "n : " << prop.n << std::endl;
 
-		potrace_bitmap_t *bm = &segments[labels[y][x]];
+		potrace_bitmap_t *bm = &segments[labels[y][x] - 1];
 		potrace_param_t *param = potrace_param_default();
 		potrace_state_t *st = potrace_trace(param, bm);
 		potrace_path_t *p = st->plist;
