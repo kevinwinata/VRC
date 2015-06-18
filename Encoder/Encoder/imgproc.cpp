@@ -6,12 +6,14 @@ using cv::Point3_;
 using std::pair;
 using std::stack;
 
-void colorMapSegmentation(Mat& img, Mat& img_seg, vector<vector<int> >& labels, vector<RegionProps>& props, vector<potrace_bitmap_t>& segments, int maxDistance)
+void colorMapSegmentation(Mat& img, Mat& img_seg, vector<vector<int> >& labels, vector<RegionProps>& props, map<long, potrace_path_t>& segments, int maxDistance)
 {
 	stack<pair<int, int> > stack;
 	long curlab = 0;
 	props.clear();
 
+	potrace_param_t *param = potrace_param_default();
+	potrace_state_t *st;
 	potrace_bitmap_t *obm;
 	obm = bm_new(img.cols, img.rows);
 	bm_clear(obm, 0);
@@ -29,7 +31,6 @@ void colorMapSegmentation(Mat& img, Mat& img_seg, vector<vector<int> >& labels, 
 				RegionProps& prop = props.back();
 
 				potrace_bitmap_t *bm = bm_dup(obm);
-				segments.push_back(*bm);
 
 				curlab++;
 
@@ -106,6 +107,13 @@ void colorMapSegmentation(Mat& img, Mat& img_seg, vector<vector<int> >& labels, 
 						}
 					}
 				}
+
+				st = potrace_trace(param, bm);
+				if (st && st->plist && st->status == POTRACE_STATUS_OK) {
+					segments[curlab] = *(st->plist);
+				}
+				
+				bm_free(bm);
 			}
 		}
 	}

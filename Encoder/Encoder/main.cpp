@@ -13,7 +13,7 @@ Mat img;
 int maxDistance = 40;
 vector< vector<int> > labels;
 vector<RegionProps> props;
-vector<potrace_bitmap_t> segments;
+map<long, potrace_path_t> segments;
 
 void mouseCallback(int event, int x, int y, int flags, void* userdata)
 {
@@ -29,17 +29,13 @@ void mouseCallback(int event, int x, int y, int flags, void* userdata)
 		std::cout << "b_dist : " << prop.b_dist << std::endl;
 		std::cout << "n : " << prop.n << std::endl;
 
-		potrace_bitmap_t *bm = &segments[labels[y][x] - 1];
-		potrace_param_t *param = potrace_param_default();
-		potrace_state_t *st = potrace_trace(param, bm);
-		potrace_path_t *p = st->plist;
+		potrace_path_t *p = &segments[labels[y][x]];
 		printf("%%!PS-Adobe-3.0 EPSF-3.0\n");
 		printf("%%%%BoundingBox: 0 0 %d %d\n", img.cols, img.rows);
 		printf("gsave\n");
 
 		/* draw each curve */
 		potrace_dpoint_t(*c)[3];
-		p = st->plist;
 		while (p != NULL) {
 			int n = p->curve.n;
 			int* tag = p->curve.tag;
@@ -66,8 +62,6 @@ void mouseCallback(int event, int x, int y, int flags, void* userdata)
 			}
 			p = p->next;
 		}
-		potrace_state_free(st);
-		potrace_param_free(param);
 
 		std::cout << std::endl;
 	}
