@@ -12,4 +12,6 @@ using std::map;
 
 void colorMapSegmentation(Mat& img, Mat& img_seg, vector<vector<int> >& labels, vector<RegionProps>& props, map<long, potrace_path_t>& segments, int maxDistance);
 
+void drawVector(Mat& img, potrace_path_t* p);
+
 #endif

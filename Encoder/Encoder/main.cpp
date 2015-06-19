@@ -15,55 +15,71 @@ vector< vector<int> > labels;
 vector<RegionProps> props;
 map<long, potrace_path_t> segments;
 
+void printRegionProps(int x, int y)
+{
+	RegionProps& prop = props[labels[y][x] - 1];
+	std::cout << "label : " << labels[y][x] << std::endl;
+	std::cout << "r_sums : " << prop.r_sums << std::endl;
+	std::cout << "g_sums : " << prop.g_sums << std::endl;
+	std::cout << "b_sums : " << prop.b_sums << std::endl;
+	std::cout << "r_dist : " << prop.r_dist << std::endl;
+	std::cout << "g_dist : " << prop.g_dist << std::endl;
+	std::cout << "b_dist : " << prop.b_dist << std::endl;
+	std::cout << "n : " << prop.n << std::endl << std::endl;
+}
+
+void printVectors(int x, int y)
+{
+	potrace_path_t *p = &segments[labels[y][x]];
+	printf("%%!PS-Adobe-3.0 EPSF-3.0\n");
+	printf("%%%%BoundingBox: 0 0 %d %d\n", img.cols, img.rows);
+	printf("gsave\n");
+
+	/* draw each curve */
+	potrace_dpoint_t(*c)[3];
+	while (p != NULL) {
+		int n = p->curve.n;
+		int* tag = p->curve.tag;
+		c = p->curve.c;
+		printf("%f %f moveto\n", c[n - 1][2].x, c[n - 1][2].y);
+		for (int i = 0; i<n; i++) {
+			switch (tag[i]) {
+			case POTRACE_CORNER:
+				printf("%f %f lineto\n", c[i][1].x, c[i][1].y);
+				printf("%f %f lineto\n", c[i][2].x, c[i][2].y);
+				break;
+			case POTRACE_CURVETO:
+				printf("%f %f %f %f %f %f curveto\n",
+					c[i][0].x, c[i][0].y,
+					c[i][1].x, c[i][1].y,
+					c[i][2].x, c[i][2].y);
+				break;
+			}
+		}
+		/* at the end of a group of a positive path and its negative
+		children, fill. */
+		if (p->next == NULL || p->next->sign == '+') {
+			printf("0 setgray fill\n");
+		}
+		p = p->next;
+	}
+
+	std::cout << std::endl;
+}
+
+void showVectors(int x, int y)
+{
+	drawVector(img, &segments[labels[y][x]]);
+	cv::imshow("Vectors", img);
+}
+
 void mouseCallback(int event, int x, int y, int flags, void* userdata)
 {
 	if (event == cv::EVENT_LBUTTONDOWN)
 	{
-		RegionProps& prop = props[labels[y][x] - 1];
-		std::cout << "label : " << labels[y][x] << std::endl;
-		std::cout << "r_sums : " << prop.r_sums << std::endl;
-		std::cout << "g_sums : " << prop.g_sums << std::endl;
-		std::cout << "b_sums : " << prop.b_sums << std::endl;
-		std::cout << "r_dist : " << prop.r_dist << std::endl;
-		std::cout << "g_dist : " << prop.g_dist << std::endl;
-		std::cout << "b_dist : " << prop.b_dist << std::endl;
-		std::cout << "n : " << prop.n << std::endl;
-
-		potrace_path_t *p = &segments[labels[y][x]];
-		printf("%%!PS-Adobe-3.0 EPSF-3.0\n");
-		printf("%%%%BoundingBox: 0 0 %d %d\n", img.cols, img.rows);
-		printf("gsave\n");
-
-		/* draw each curve */
-		potrace_dpoint_t(*c)[3];
-		while (p != NULL) {
-			int n = p->curve.n;
-			int* tag = p->curve.tag;
-			c = p->curve.c;
-			printf("%f %f moveto\n", c[n - 1][2].x, c[n - 1][2].y);
-			for (int i = 0; i<n; i++) {
-				switch (tag[i]) {
-				case POTRACE_CORNER:
-					printf("%f %f lineto\n", c[i][1].x, c[i][1].y);
-					printf("%f %f lineto\n", c[i][2].x, c[i][2].y);
-					break;
-				case POTRACE_CURVETO:
-					printf("%f %f %f %f %f %f curveto\n",
-						c[i][0].x, c[i][0].y,
-						c[i][1].x, c[i][1].y,
-						c[i][2].x, c[i][2].y);
-					break;
-				}
-			}
-			/* at the end of a group of a positive path and its negative
-			children, fill. */
-			if (p->next == NULL || p->next->sign == '+') {
-				printf("0 setgray fill\n");
-			}
-			p = p->next;
-		}
-
-		std::cout << std::endl;
+		printRegionProps(x, y);
+		printVectors(x, y);
+		showVectors(x, y);
 	}
 }
 
@@ -98,6 +114,8 @@ int main(int argc, char** argv)
 
 	cv::createTrackbar(" Max Distance:", "Source", &maxDistance, 100, doSegmentation);
 	doSegmentation(0, 0);
+
+	cv::namedWindow("Vectors", cv::WINDOW_AUTOSIZE);
 
 	cv::waitKey(0); // Wait for a keystroke in the window
 	return 0;

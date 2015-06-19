@@ -1,10 +1,13 @@
+#include <opencv2/imgproc.hpp>
 #include "imgproc.h"
 #include "potrace\bitmap.h"
 #include <stack>
 
 using cv::Point3_;
+using cv::Point;
 using std::pair;
 using std::stack;
+using std::round;
 
 void colorMapSegmentation(Mat& img, Mat& img_seg, vector<vector<int> >& labels, vector<RegionProps>& props, map<long, potrace_path_t>& segments, int maxDistance)
 {
@@ -38,7 +41,7 @@ void colorMapSegmentation(Mat& img, Mat& img_seg, vector<vector<int> >& labels, 
 					pair<int, int> pos = stack.top(); stack.pop();
 					Point3_<uchar>* pixel = img.ptr<Point3_<uchar> >(pos.first, pos.second);
 					labels[pos.first][pos.second] = curlab;
-					BM_PUT(bm, pos.second, img.rows - pos.first, 1);
+					BM_PUT(bm, pos.second, pos.first, 1);
 
 					prop.r_sums += pixel->z;
 					prop.g_sums += pixel->y;
@@ -127,4 +130,42 @@ void colorMapSegmentation(Mat& img, Mat& img_seg, vector<vector<int> >& labels, 
 		}
 	}
 
+}
+
+void drawVector(Mat& img, potrace_path_t* p)
+{
+	potrace_dpoint_t(*c)[3];
+	while (p != NULL) {
+		int n = p->curve.n;
+		int* tag = p->curve.tag;
+		c = p->curve.c;
+		Point prevPoint = Point(c[n - 1][2].x, c[n - 1][2].y);
+		for (int i = 0; i < n; i++) {
+			switch (tag[i]) {
+			case POTRACE_CORNER:
+				cv::line(img,
+					prevPoint,
+					Point(c[i][1].x, c[i][1].y),
+					cv::Scalar(0, 0, 0), 1, 8, 0);
+				cv::line(img,
+					Point(c[i][1].x, c[i][1].y),
+					Point(c[i][2].x, c[i][2].y),
+					cv::Scalar(0, 0, 0), 1, 8, 0);
+				break;
+			case POTRACE_CURVETO:
+				Point points[1][5];
+				points[0][0] = prevPoint;
+				points[0][1] = Point(c[i][0].x, c[i][0].y);
+				points[0][2] = Point(c[i][1].x, c[i][1].y);
+				points[0][3] = Point(c[i][2].x, c[i][2].y);
+				const Point* ppt[1] = { points[0] };
+				int npt[] = { 4 };
+
+				cv::polylines(img, ppt, npt, 4, true, cv::Scalar(0, 0, 0), 1, 8, 0);
+				break;
+			}
+			prevPoint = Point(c[i][2].x, c[i][2].y);
+		}
+		p = p->next;
+	}
 }
