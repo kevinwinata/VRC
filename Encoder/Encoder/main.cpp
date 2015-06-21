@@ -11,7 +11,7 @@ using std::vector;
 
 Mat img;
 int maxDistance = 40;
-vector< vector<int> > labels;
+vector<vector<int>> labels;
 vector<RegionProps> props;
 map<long, potrace_path_t> segments;
 
@@ -78,15 +78,17 @@ void mouseCallback(int event, int x, int y, int flags, void* userdata)
 	if (event == cv::EVENT_LBUTTONDOWN)
 	{
 		printRegionProps(x, y);
-		printVectors(x, y);
+		//printVectors(x, y);
 		showVectors(x, y);
 	}
 }
 
 void doSegmentation(int, void*)
 {
+	colorMapSegmentation(img, labels, props, segments, maxDistance);
+
 	Mat img_seg(img.rows, img.cols, img.type());
-	colorMapSegmentation(img, img_seg, labels, props, segments, maxDistance);
+	drawSegments(img_seg, labels);
 
 	cv::namedWindow("Segmentated", CV_WINDOW_AUTOSIZE);
 	cv::imshow("Segmentated", img_seg);

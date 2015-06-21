@@ -1,17 +1,19 @@
 #include <opencv2/imgproc.hpp>
+#include <iostream>
+#include <stack>
+#include <array>
 #include "imgproc.h"
 #include "potrace\bitmap.h"
-#include <stack>
 
 using cv::Point3_;
 using cv::Point;
 using std::pair;
 using std::stack;
-using std::round;
+using std::array;
 
-void colorMapSegmentation(Mat& img, Mat& img_seg, vector<vector<int> >& labels, vector<RegionProps>& props, map<long, potrace_path_t>& segments, int maxDistance)
+void colorMapSegmentation(Mat& img, vector<vector<int>>& labels, vector<RegionProps>& props, map<long, potrace_path_t>& segments, int maxDistance)
 {
-	stack<pair<int, int> > stack;
+	stack<pair<int, int>> stack;
 	long curlab = 0;
 	props.clear();
 
@@ -39,7 +41,7 @@ void colorMapSegmentation(Mat& img, Mat& img_seg, vector<vector<int> >& labels, 
 
 				while (!stack.empty()) {
 					pair<int, int> pos = stack.top(); stack.pop();
-					Point3_<uchar>* pixel = img.ptr<Point3_<uchar> >(pos.first, pos.second);
+					Point3_<uchar>* pixel = img.ptr<Point3_<uchar>>(pos.first, pos.second);
 					labels[pos.first][pos.second] = curlab;
 					BM_PUT(bm, pos.second, pos.first, 1);
 
@@ -49,64 +51,29 @@ void colorMapSegmentation(Mat& img, Mat& img_seg, vector<vector<int> >& labels, 
 					prop.n++;
 
 					Point3_<uchar>* temp;
+					array<pair<int, int>, 4> dir;
+					dir[0] = std::make_pair(-1, 0);
+					dir[1] = std::make_pair(1, 0);
+					dir[2] = std::make_pair(0, -1);
+					dir[3] = std::make_pair(0, 1);
 
-					if (pos.first - 1 >= 0 &&
-						labels[pos.first - 1][pos.second] == 0)
-					{
-						temp = img.ptr<Point3_<uchar> >(pos.first - 1, pos.second);
-						int dist = std::abs(prop.r_sums / prop.n - temp->z) +
-							std::abs(prop.g_sums / prop.n - temp->y) +
-							std::abs(prop.b_sums / prop.n - temp->x);
-						if (dist <= maxDistance) {
-							stack.push(std::make_pair(pos.first - 1, pos.second));
-							prop.r_dist += std::abs(pixel->z - temp->z);
-							prop.g_dist += std::abs(pixel->y - temp->y);
-							prop.b_dist += std::abs(pixel->x - temp->x);
-						}
-					}
-
-					if (pos.first + 1 < img.rows &&
-						labels[pos.first + 1][pos.second] == 0)
-					{
-						temp = img.ptr<Point3_<uchar> >(pos.first + 1, pos.second);
-						int dist = std::abs(prop.r_sums / prop.n - temp->z) +
-							std::abs(prop.g_sums / prop.n - temp->y) +
-							std::abs(prop.b_sums / prop.n - temp->x);
-						if (dist <= maxDistance) {
-							stack.push(std::make_pair(pos.first + 1, pos.second));
-							prop.r_dist += std::abs(pixel->z - temp->z);
-							prop.g_dist += std::abs(pixel->y - temp->y);
-							prop.b_dist += std::abs(pixel->x - temp->x);
-						}
-					}
-
-					if (pos.second - 1 >= 0 &&
-						labels[pos.first][pos.second - 1] == 0)
-					{
-						temp = img.ptr<Point3_<uchar> >(pos.first, pos.second - 1);
-						int dist = std::abs(prop.r_sums / prop.n - temp->z) +
-							std::abs(prop.g_sums / prop.n - temp->y) +
-							std::abs(prop.b_sums / prop.n - temp->x);
-						if (dist <= maxDistance) {
-							stack.push(std::make_pair(pos.first, pos.second - 1));
-							prop.r_dist += std::abs(pixel->z - temp->z);
-							prop.g_dist += std::abs(pixel->y - temp->y);
-							prop.b_dist += std::abs(pixel->x - temp->x);
-						}
-					}
-
-					if (pos.second + 1 < img.cols &&
-						labels[pos.first][pos.second + 1] == 0)
-					{
-						temp = img.ptr<Point3_<uchar> >(pos.first, pos.second + 1);
-						int dist = std::abs(prop.r_sums / prop.n - temp->z) +
-							std::abs(prop.g_sums / prop.n - temp->y) +
-							std::abs(prop.b_sums / prop.n - temp->x);
-						if (dist <= maxDistance) {
-							stack.push(std::make_pair(pos.first, pos.second + 1));
-							prop.r_dist += std::abs(pixel->z - temp->z);
-							prop.g_dist += std::abs(pixel->y - temp->y);
-							prop.b_dist += std::abs(pixel->x - temp->x);
+					for (int k = 0; k < 4; k++) {
+						int ypos = pos.first + dir[k].first;
+						int xpos = pos.second + dir[k].second;
+						if (ypos >= 0 && ypos < img.rows &&
+							xpos >= 0 && xpos < img.cols &&
+							labels[ypos][xpos] == 0)
+						{
+							temp = img.ptr<Point3_<uchar>>(ypos, xpos);
+							int dist = std::abs(prop.r_sums / prop.n - temp->z) +
+								std::abs(prop.g_sums / prop.n - temp->y) +
+								std::abs(prop.b_sums / prop.n - temp->x);
+							if (dist <= maxDistance) {
+								stack.push(std::make_pair(ypos, xpos));
+								prop.r_dist += std::abs(pixel->z - temp->z);
+								prop.g_dist += std::abs(pixel->y - temp->y);
+								prop.b_dist += std::abs(pixel->x - temp->x);
+							}
 						}
 					}
 				}
@@ -121,15 +88,20 @@ void colorMapSegmentation(Mat& img, Mat& img_seg, vector<vector<int> >& labels, 
 		}
 	}
 
+	std::cout << curlab << std::endl;
+	std::cout << segments.size() << std::endl;
+}
+
+void drawSegments(Mat& img_seg, vector<vector<int>>& labels)
+{
 	for (int i = 0; i < img_seg.rows; i++) {
 		for (int j = 0; j < img_seg.cols; j++) {
-			Point3_<uchar>* p = img_seg.ptr<Point3_<uchar> >(i, j);
+			Point3_<uchar>* p = img_seg.ptr<Point3_<uchar>>(i, j);
 			p->x = labels[i][j] * 25 % 255;
 			p->y = labels[i][j] * 100 % 255;
 			p->z = labels[i][j] * 180 % 255;
 		}
 	}
-
 }
 
 void drawVector(Mat& img, potrace_path_t* p)

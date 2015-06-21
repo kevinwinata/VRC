@@ -10,7 +10,9 @@ using cv::Mat;
 using std::vector;
 using std::map;
 
-void colorMapSegmentation(Mat& img, Mat& img_seg, vector<vector<int> >& labels, vector<RegionProps>& props, map<long, potrace_path_t>& segments, int maxDistance);
+void colorMapSegmentation(Mat& img, vector<vector<int>>& labels, vector<RegionProps>& props, map<long, potrace_path_t>& segments, int maxDistance);
+
+void drawSegments(Mat& img_seg, vector<vector<int>>& labels);
 
 void drawVector(Mat& img, potrace_path_t* p);
 
