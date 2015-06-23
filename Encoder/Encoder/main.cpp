@@ -59,7 +59,7 @@ void printVectors(int x, int y)
 		/* at the end of a group of a positive path and its negative
 		children, fill. */
 		if (p->next == NULL || p->next->sign == '+') {
-			printf("0 setgray fill\n");
+			//printf("0 setgray fill\n");
 		}
 		p = p->next;
 	}
@@ -69,16 +69,22 @@ void printVectors(int x, int y)
 
 void showVectors(int x, int y)
 {
-	drawVector(img, &segments[labels[y][x]]);
-	cv::imshow("Vectors", img);
+	Mat img_vec = Mat::zeros(img.rows, img.cols, CV_8UC1);
+	drawVector(img_vec, &segments[labels[y][x]]);
+
+	vector<vector<int>> vlabels;
+	vlabels.resize(img_vec.rows, vector<int>(img_vec.cols, 0));
+	fillVector(img_vec, y, x, 1, vlabels);
+
+	cv::imshow("Vectors", img_vec);
 }
 
 void mouseCallback(int event, int x, int y, int flags, void* userdata)
 {
 	if (event == cv::EVENT_LBUTTONDOWN)
 	{
-		printRegionProps(x, y);
-		//printVectors(x, y);
+		//printRegionProps(x, y);
+		printVectors(x, y);
 		showVectors(x, y);
 	}
 }

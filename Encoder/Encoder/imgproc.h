@@ -16,4 +16,6 @@ void drawSegments(Mat& img_seg, vector<vector<int>>& labels);
 
 void drawVector(Mat& img, potrace_path_t* p);
 
+void fillVector(Mat& img, int i, int j, int label, vector<vector<int>>& labels);
+
 #endif
