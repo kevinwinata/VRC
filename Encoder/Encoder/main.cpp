@@ -19,13 +19,8 @@ void printRegionProps(int x, int y)
 {
 	RegionProps& prop = props[labels[y][x] - 1];
 	std::cout << "label : " << labels[y][x] << std::endl;
-	std::cout << "r_sums : " << prop.r_sums << std::endl;
-	std::cout << "g_sums : " << prop.g_sums << std::endl;
-	std::cout << "b_sums : " << prop.b_sums << std::endl;
-	std::cout << "r_dist : " << prop.r_dist << std::endl;
-	std::cout << "g_dist : " << prop.g_dist << std::endl;
-	std::cout << "b_dist : " << prop.b_dist << std::endl;
-	std::cout << "n : " << prop.n << std::endl << std::endl;
+	prop.printProps();
+	std::cout << std::endl;
 }
 
 void printVectors(int x, int y)
@@ -72,9 +67,9 @@ void showVectors(int x, int y)
 	Mat img_vec = Mat::zeros(img.rows, img.cols, CV_8UC1);
 	drawVector(img_vec, &segments[labels[y][x]]);
 
-	vector<vector<int>> vlabels;
+	/*vector<vector<int>> vlabels;
 	vlabels.resize(img_vec.rows, vector<int>(img_vec.cols, 0));
-	fillVector(img_vec, y, x, 1, vlabels);
+	fillVector(img_vec, y, x, 1, vlabels);*/
 
 	cv::imshow("Vectors", img_vec);
 }
@@ -84,7 +79,7 @@ void mouseCallback(int event, int x, int y, int flags, void* userdata)
 	if (event == cv::EVENT_LBUTTONDOWN)
 	{
 		//printRegionProps(x, y);
-		printVectors(x, y);
+		//printVectors(x, y);
 		showVectors(x, y);
 	}
 }

@@ -66,6 +66,9 @@
     <ClCompile Include="potrace\trans.c">
       <Filter>Source Files\potrace</Filter>
     </ClCompile>
+    <ClCompile Include="regionprops.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgproc.h">

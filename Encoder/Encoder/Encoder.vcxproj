@@ -159,6 +159,7 @@
     <ClCompile Include="potrace\render.c" />
     <ClCompile Include="potrace\trace.c" />
     <ClCompile Include="potrace\trans.c" />
+    <ClCompile Include="regionprops.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgproc.h" />

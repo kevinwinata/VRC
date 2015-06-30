@@ -7,6 +7,8 @@
 
 using cv::Point3_;
 using cv::Point;
+using cv::Vec3b;
+using cv::Ptr;
 using std::pair;
 using std::stack;
 using std::array;
@@ -51,10 +53,7 @@ void colorMapSegmentation(Mat& img, vector<vector<int>>& labels, vector<RegionPr
 					labels[pos.first][pos.second] = curlab;
 					BM_PUT(bm, pos.second, pos.first, 1);
 
-					prop.r_sums += pixel->z;
-					prop.g_sums += pixel->y;
-					prop.b_sums += pixel->x;
-					prop.n++;
+					prop.addPixel(*pixel);
 
 					Point3_<uchar>* temp;
 
@@ -66,14 +65,10 @@ void colorMapSegmentation(Mat& img, vector<vector<int>>& labels, vector<RegionPr
 							labels[ypos][xpos] == 0)
 						{
 							temp = img.ptr<Point3_<uchar>>(ypos, xpos);
-							int dist = std::abs(prop.r_sums / prop.n - temp->z) +
-								std::abs(prop.g_sums / prop.n - temp->y) +
-								std::abs(prop.b_sums / prop.n - temp->x);
+							int dist = prop.countDistToAvg(*temp);
 							if (dist <= maxDistance) {
 								stack.push(std::make_pair(ypos, xpos));
-								prop.r_dist += std::abs(pixel->z - temp->z);
-								prop.g_dist += std::abs(pixel->y - temp->y);
-								prop.b_dist += std::abs(pixel->x - temp->x);
+								prop.addDistance(*pixel, *temp);
 							}
 						}
 					}
@@ -120,17 +115,28 @@ void fillVector(Mat& img, int i, int j, int label, vector<vector<int>>& labels)
 		pair<int, int> pos = stack.top(); stack.pop();
 		labels[pos.first][pos.second] = label;
 		uchar* p = img.ptr<uchar>(pos.first, pos.second);
-		*p = 255;
+		*p = 122;
 
 		for (pair<int, int> p : dir) {
 			int ypos = pos.first + p.first;
 			int xpos = pos.second + p.second;
-			if (ypos >= 0 && ypos < img.rows &&
-				xpos >= 0 && xpos < img.cols &&
-				labels[ypos][xpos] != label &&
-				*(img.ptr<uchar>(ypos, xpos)) == 0) 
-			{
-				stack.push(std::make_pair(ypos, xpos));
+			if (ypos >= 0 && ypos < img.rows && xpos >= 0 && xpos < img.cols) {
+				uchar* px = img.ptr<uchar>(ypos, xpos);
+				if (labels[ypos][xpos] != label && *px == 0) {
+					stack.push(std::make_pair(ypos, xpos));
+				}
+				else if (*px == 255) {
+					labels[ypos][xpos] = label;
+				}
+			}
+		}
+	}
+
+	for (int i = 0; i < img.rows; i++) {
+		for (int j = 0; j < img.cols; j++) {
+			if (labels[i][j] == label) {
+				uchar* p = img.ptr<uchar>(i, j);
+				*p = 100;
 			}
 		}
 	}
@@ -144,32 +150,42 @@ void drawVector(Mat& img, potrace_path_t* p)
 		int n = p->curve.n;
 		int* tag = p->curve.tag;
 		c = p->curve.c;
-		prevPoint = Point(c[n - 1][2].x, c[n - 1][2].y);
+		int cx = static_cast<int>(std::round(c[n - 1][2].x));
+		int cy = static_cast<int>(std::round(c[n - 1][2].y));
+		prevPoint = Point(cx, cy);
+
 		for (int i = 0; i < n; i++) {
+			int cx0 = static_cast<int>(std::round(c[i][0].x));
+			int cy0 = static_cast<int>(std::round(c[i][0].y));
+			int cx1 = static_cast<int>(std::round(c[i][1].x));
+			int cy1 = static_cast<int>(std::round(c[i][1].y));
+			int cx2 = static_cast<int>(std::round(c[i][2].x));
+			int cy2 = static_cast<int>(std::round(c[i][2].y));
+
 			switch (tag[i]) {
 			case POTRACE_CORNER:
 				cv::line(img,
 					prevPoint,
-					Point(c[i][1].x, c[i][1].y),
+					Point(cx1, cy1),
 					255, 1, 8, 0);
 				cv::line(img,
-					Point(c[i][1].x, c[i][1].y),
-					Point(c[i][2].x, c[i][2].y),
+					Point(cx1, cy1),
+					Point(cx2, cy2),
 					255, 1, 8, 0);
 				break;
 			case POTRACE_CURVETO:
 				Point points[1][5];
 				points[0][0] = prevPoint;
-				points[0][1] = Point(c[i][0].x, c[i][0].y);
-				points[0][2] = Point(c[i][1].x, c[i][1].y);
-				points[0][3] = Point(c[i][2].x, c[i][2].y);
+				points[0][1] = Point(cx0, cy0);
+				points[0][2] = Point(cx1, cy1);
+				points[0][3] = Point(cx2, cy2);
 				const Point* ppt[1] = { points[0] };
 				int npt[] = { 4 };
 
 				cv::polylines(img, ppt, npt, 4, true, 255, 1, 8, 0);
 				break;
 			}
-			prevPoint = Point(c[i][2].x, c[i][2].y);
+			prevPoint = Point(cx2, cy2);
 		}
 		p = p->next;
 	}
