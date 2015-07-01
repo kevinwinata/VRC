@@ -1,5 +1,6 @@
 #include <opencv2/imgproc.hpp>
 #include <iostream>
+#include <fstream>
 #include <stack>
 #include <array>
 #include "imgproc.h"
@@ -12,6 +13,7 @@ using cv::Ptr;
 using std::pair;
 using std::stack;
 using std::array;
+using std::ofstream;
 
 void colorMapSegmentation(Mat& img, vector<vector<int>>& labels, vector<RegionProps>& props, map<long, potrace_path_t>& segments, int maxDistance)
 {
@@ -189,4 +191,64 @@ void drawVector(Mat& img, potrace_path_t* p)
 		}
 		p = p->next;
 	}
+}
+
+void writeVector(string filename, map<long, potrace_path_t>& segments, vector<RegionProps>& props, int width, int height)
+{
+	ofstream file;
+	file.open(filename);
+
+	file << "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
+	file << "<!DOCTYPE svg PUBLIC \" -//W3C//DTD SVG 1.1//EN\" ";
+	file << "\"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n";
+
+	file << "<svg version=\"1.1\"  xmlns=\"http://www.w3.org/2000/svg\" ";
+	file << "width=\"" << width << "px\" ";
+	file << "height = \"" << height << "\" ";
+	file << "viewBox=\"0 0 " << width << " " << height << "\" xml:space=\"preserve\">\n";
+
+	potrace_dpoint_t(*c)[3];
+
+	for (auto& seg : segments) {
+		string color = props[seg.first].getAvgColor();
+		potrace_path_t *p = &seg.second;
+
+		file << "<g>\n";
+		file << "<path d=\"";
+		while (p != NULL) {
+			int n = p->curve.n;
+			int* tag = p->curve.tag;
+			c = p->curve.c;
+			file << "M " << c[n - 1][2].x << " " << c[n - 1][2].y << " ";
+			//printf("%f %f moveto\n", c[n - 1][2].x, c[n - 1][2].y);
+			for (int i = 0; i<n; i++) {
+				switch (tag[i]) {
+				case POTRACE_CORNER:
+					file << "L " << c[i][1].x << " " << c[i][1].y << " ";
+					//printf("%f %f lineto\n", c[i][1].x, c[i][1].y);
+					file << "L " << c[i][2].x << " " << c[i][2].y << " ";
+					//printf("%f %f lineto\n", c[i][2].x, c[i][2].y);
+					break;
+				case POTRACE_CURVETO:
+					file << "C " << 
+						c[i][0].x << " " << c[i][0].y << " " <<
+						c[i][1].x << " " << c[i][1].y << " " <<
+						c[i][2].x << " " << c[i][2].y << " ";
+					/*printf("%f %f %f %f %f %f curveto\n",
+						c[i][0].x, c[i][0].y,
+						c[i][1].x, c[i][1].y,
+						c[i][2].x, c[i][2].y);*/
+					break;
+				}
+			}
+			if (p->next == NULL || p->next->sign == '+') {
+				file << "\" fill=\"" << color << "\" stroke=\"none\"/>\n";
+			}
+			p = p->next;
+		}
+		//file << "\" fill=\"" << color << "\" stroke=\"none\"/>\n";
+		file << "</g>\n";
+	}
+	file << "</svg>";
+	file.close();
 }

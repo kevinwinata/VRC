@@ -1,6 +1,8 @@
 #include "regionprops.h"
 #include <iostream>
 
+using std::stringstream;
+
 RegionProps::RegionProps() {
 	r_sums = 0;
 	g_sums = 0;
@@ -24,6 +26,16 @@ void RegionProps::addDistance(Point3_<uchar>& pixel1, Point3_<uchar>& pixel2) {
 	b_dist += std::abs(pixel1.x - pixel2.x);
 }
 
+string RegionProps::getAvgColor() {
+	int r = static_cast<int>(std::round(r_sums / n));
+	int g = static_cast<int>(std::round(g_sums / n));
+	int b = static_cast<int>(std::round(b_sums / n));
+
+	stringstream s;
+	s << "#" << std::hex << r << g << b;
+	return s.str();
+}
+
 int RegionProps::countDistToAvg(Point3_<uchar>& pixel) {
 	return	std::abs(r_sums / n - pixel.z) +
 			std::abs(g_sums / n - pixel.y) +
@@ -38,4 +50,5 @@ void RegionProps::printProps() {
 	std::cout << "g_dist : " << g_dist << std::endl;
 	std::cout << "b_dist : " << b_dist << std::endl;
 	std::cout << "n : " << n << std::endl;
+	std::cout << "color : " << getAvgColor() << std::endl;
 }

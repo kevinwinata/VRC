@@ -80,7 +80,8 @@ void mouseCallback(int event, int x, int y, int flags, void* userdata)
 	{
 		//printRegionProps(x, y);
 		//printVectors(x, y);
-		showVectors(x, y);
+		//showVectors(x, y);
+		writeVector("example.svg", segments, props, img.cols, img.rows);
 	}
 }
 

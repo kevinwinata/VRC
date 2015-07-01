@@ -4,6 +4,7 @@
 #include <opencv2/core/core.hpp>
 
 using cv::Point3_;
+using std::string;
 
 class RegionProps
 {
@@ -18,8 +19,10 @@ private:
 
 public:
 	RegionProps();
+
 	void addPixel(Point3_<uchar>& pixel);
 	void addDistance(Point3_<uchar>& pixel1, Point3_<uchar>& pixel2);
+	string getAvgColor();
 	int countDistToAvg(Point3_<uchar>& pixel);
 	void printProps();
 };
